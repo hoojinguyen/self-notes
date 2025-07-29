@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Editor } from '@/components/editor/Editor'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { SearchComponent } from './components/search/SearchComponent'
-import { CommandPalette } from './components/command/CommandPalette'
-import type { CommandAction } from './components/command/CommandPalette'
+import { SearchComponent } from '@/components/search/SearchComponent'
+import { CommandPalette } from '@/components/command/CommandPalette'
+import type { CommandAction } from '@/components/command/CommandPalette'
 import { Button } from '@/components/ui/button'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
@@ -48,7 +48,10 @@ function App() {
       label: 'Search Notes',
       description: 'Search through all notes',
       icon: <Search className="h-4 w-4" />,
-      action: () => setSearchOpen(true),
+      action: () => {
+        setCommandPaletteOpen(false)
+        setSearchOpen(true)
+      },
       shortcut: '⌘F',
       group: 'Navigation'
     },
@@ -84,15 +87,33 @@ function App() {
   // Keyboard shortcuts
   useKeyboardShortcuts([
     {
+      key: 'Escape',
+      action: () => {
+        // Priority: close search first, then command palette
+        if (searchOpen) {
+          setSearchOpen(false)
+        } else if (commandPaletteOpen) {
+          setCommandPaletteOpen(false)
+        }
+      },
+      description: 'Close modals'
+    },
+    {
       key: 'k',
       metaKey: true,
-      action: () => setCommandPaletteOpen(true),
+      action: () => {
+        setSearchOpen(false) // Close search if open
+        setCommandPaletteOpen(true)
+      },
       description: 'Open command palette'
     },
     {
       key: 'f',
       metaKey: true,
-      action: () => setSearchOpen(true),
+      action: () => {
+        setCommandPaletteOpen(false) // Close command palette if open
+        setSearchOpen(true)
+      },
       description: 'Open search'
     },
     {
@@ -268,7 +289,7 @@ function App() {
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="border-b px-4 py-3 flex items-center justify-between">
+        <div className="border-b px-4 py-3 flex items-center justify-between bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
           <div className="flex items-center gap-4">
             {!sidebarOpen && (
               <Button 
@@ -279,38 +300,61 @@ function App() {
                 <Menu className="h-4 w-4" />
               </Button>
             )}
-            <h1 className="text-xl font-semibold">
-              {getCurrentFileName()}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold">
+                {getCurrentFileName()}
+              </h1>
+              <div className="hidden sm:flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  {files.length} notes
+                </span>
+                {activeFile && (
+                  <span>Auto-saved</span>
+                )}
+              </div>
+            </div>
           </div>
           
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2"
+              onClick={() => {
+                setCommandPaletteOpen(false)
+                setSearchOpen(true)
+              }}
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              title="Search (⌘F)"
             >
               <Search className="h-4 w-4" />
-              Search
+              <span className="hidden sm:inline">Search</span>
+              <span className="text-xs text-muted-foreground ml-1">⌘F</span>
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setCommandPaletteOpen(true)}
-              className="flex items-center gap-2"
+              onClick={() => {
+                setSearchOpen(false)
+                setCommandPaletteOpen(true)
+              }}
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              title="Commands (⌘K)"
             >
               <Command className="h-4 w-4" />
-              Commands
+              <span className="hidden sm:inline">Commands</span>
+              <span className="text-xs text-muted-foreground ml-1">⌘K</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleSave}
               className="flex items-center gap-2"
+              title="Save (⌘S)"
             >
               <Save className="h-4 w-4" />
-              Save
+              <span className="hidden sm:inline">Save</span>
+              <span className="text-xs text-muted-foreground ml-1">⌘S</span>
             </Button>
           </div>
         </div>
@@ -328,14 +372,25 @@ function App() {
             </div>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold mb-2">Welcome to Haptic Notes</h2>
-                <p className="mb-4">Select a note from the sidebar or create a new one to get started.</p>
-                <div className="space-y-2">
-                  <p className="text-sm">Quick shortcuts:</p>
-                  <p className="text-sm">⌘K - Command palette</p>
-                  <p className="text-sm">⌘F - Search notes</p>
-                  <p className="text-sm">⌘N - New note</p>
+              <div className="text-center max-w-md">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Search className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Welcome to Haptic Notes</h2>
+                <p className="mb-6 text-gray-600 dark:text-gray-400">Select a note from the sidebar or create a new one to get started.</p>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+                    <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs">⌘K</kbd>
+                    <span>Command palette</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+                    <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs">⌘F</kbd>
+                    <span>Search notes</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+                    <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs">⌘N</kbd>
+                    <span>New note</span>
+                  </div>
                 </div>
               </div>
             </div>

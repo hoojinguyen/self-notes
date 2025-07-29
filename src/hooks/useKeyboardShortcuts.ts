@@ -14,9 +14,18 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled = tr
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!enabled) return
 
-    // Don't trigger shortcuts when typing in inputs
+    // Don't trigger shortcuts when typing in inputs or contentEditable elements
     const target = event.target as HTMLElement
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+    const isInEditor = target.tagName === 'INPUT' || 
+                      target.tagName === 'TEXTAREA' || 
+                      target.contentEditable === 'true' ||
+                      target.closest('.ProseMirror')
+
+    // Allow certain shortcuts even in editor (like save)
+    const allowedInEditor = ['s', 'f', 'k']
+    const shouldPreventInEditor = isInEditor && !allowedInEditor.includes(event.key.toLowerCase())
+    
+    if (shouldPreventInEditor) {
       return
     }
 
@@ -28,6 +37,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled = tr
       const altMatches = !!shortcut.altKey === event.altKey
 
       if (keyMatches && metaMatches && ctrlMatches && shiftMatches && altMatches) {
+        console.log('Keyboard shortcut triggered:', shortcut.description)
         event.preventDefault()
         shortcut.action()
         break

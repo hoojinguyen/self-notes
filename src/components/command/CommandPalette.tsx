@@ -75,11 +75,11 @@ export function CommandPalette({ isOpen, onClose, commands }: CommandPaletteProp
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-32 z-50">
-      <div className="bg-background border rounded-lg shadow-lg w-full max-w-lg mx-4 max-h-96 flex flex-col">
-        <div className="p-4 border-b">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-start justify-center pt-[15vh] z-50">
+      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-96 flex flex-col">
+        <div className="p-5 border-b border-gray-200/50 dark:border-gray-700/50">
           <div className="relative">
-            <Command className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Command className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <Input
               ref={inputRef}
               type="text"
@@ -87,7 +87,7 @@ export function CommandPalette({ isOpen, onClose, commands }: CommandPaletteProp
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="pl-10"
+              className="pl-12 h-12 text-base bg-gray-50/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 rounded-xl"
             />
           </div>
         </div>
@@ -98,30 +98,32 @@ export function CommandPalette({ isOpen, onClose, commands }: CommandPaletteProp
               {filteredCommands.map((command, index) => (
                 <div
                   key={command.id}
-                  className={`px-4 py-2 cursor-pointer flex items-center justify-between transition-colors ${
+                  className={`mx-2 mb-1 p-4 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-between ${
                     index === selectedIndex
-                      ? 'bg-muted text-foreground'
-                      : 'hover:bg-muted/50'
+                      ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-700 shadow-sm'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border-2 border-transparent'
                   }`}
                   onClick={() => executeCommand(command)}
                 >
                   <div className="flex items-center gap-3">
                     {command.icon && (
-                      <div className="w-4 h-4 text-muted-foreground">
-                        {command.icon}
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                        <div className="w-5 h-5 text-blue-600 dark:text-blue-400">
+                          {command.icon}
+                        </div>
                       </div>
                     )}
                     <div>
-                      <div className="font-medium">{command.label}</div>
+                      <div className="font-semibold text-gray-900 dark:text-gray-100">{command.label}</div>
                       {command.description && (
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                           {command.description}
                         </div>
                       )}
                     </div>
                   </div>
                   {command.shortcut && (
-                    <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                    <div className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-lg text-xs font-mono">
                       {command.shortcut}
                     </div>
                   )}
@@ -129,14 +131,26 @@ export function CommandPalette({ isOpen, onClose, commands }: CommandPaletteProp
               ))}
             </div>
           ) : (
-            <div className="p-4 text-center text-muted-foreground">
-              {query ? `No commands found for "${query}"` : 'No commands available'}
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Command className="h-8 w-8 text-gray-400" />
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 font-medium mb-2">
+                {query ? `No commands found for "${query}"` : 'No commands available'}
+              </p>
             </div>
           )}
         </div>
 
-        <div className="p-2 border-t text-xs text-muted-foreground text-center">
-          Use ↑↓ to navigate, Enter to select, Esc to close
+        <div className="p-4 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 rounded-b-2xl">
+          <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+            <span>Quick actions & navigation</span>
+            <div className="flex items-center gap-4">
+              <span>↑↓ Navigate</span>
+              <span>↵ Select</span>
+              <span>Esc Close</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
